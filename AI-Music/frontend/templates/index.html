@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Music Captioning</title>
+    <style>
+        /* Global Styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #f5f5f5;
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #242424, #3a3a3a);
+            border-radius: 20px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Header */
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-shadow: 0px 3px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #c7c7c7;
+            margin-bottom: 30px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .upload-area:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff8c00, #ff3b3b);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        label:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 4px 15px rgba(255, 140, 0, 0.7);
+        }
+
+        /* Buttons */
+        button {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            font-size: 1rem;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 4px 20px rgba(90, 12, 181, 0.5);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        /* Output Box */
+        .output-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none; /* Initially hidden */
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
+            text-align: left; /* Align captions text */
+        }
+
+        .output-box h3 {
+            color: #ff8c00;
+        }
+
+        .caption-chunk {
+            margin: 10px 0;
+            color: #f5f5f5;
+        }
+
+        /* Processing Message */
+        .processing-message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #ffcc00;
+            display: none; /* Hidden initially */
+        }
+
+        /* Audio Player Styling */
+        .audio-player {
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎵 Interactive Music Captioning 🎵</h1>
+        <p class="subtitle">Upload an MP3 file to play it and fetch its generated captions and summary.</p>
+
+        <!-- Upload Area -->
+        <div class="upload-area">
+            <p>Drag and drop your MP3 file here or</p>
+            <input type="file" id="audioFile" accept="audio/*">
+            <label for="audioFile">Upload File</label>
+        </div>
+
+        <!-- Audio Player -->
+        <div class="audio-player" id="audioPlayer" style="display: none;">
+            <p>Play your uploaded song:</p>
+            <audio controls id="audioElement"></audio>
+        </div>
+
+        <button id="uploadButton" disabled>Fetch Captions & Summary</button>
+
+        <!-- Processing Message -->
+        <p class="processing-message" id="processingMessage">Processing, please wait...</p>
+
+        <!-- Output Box -->
+        <div class="output-box" id="outputBox">
+            <h3>Generated Caption:</h3>
+            <h5>Each chunk represents a 10-second duration. Chunk 1: 0-10 sec, and so on.</h5>
+            <div id="captionOutput"></div>
+
+            <h3>Summary:</h3>
+            <div id="summaryOutput" style="margin-top: 20px; color: #ffcc00; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('audioFile');
+        const uploadButton = document.getElementById('uploadButton');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audioElement');
+        const outputBox = document.getElementById('outputBox');
+        const captionOutput = document.getElementById('captionOutput');
+        const summaryOutput = document.getElementById('summaryOutput');
+        const processingMessage = document.getElementById('processingMessage');
+
+        // Enable the button when a file is selected
+        fileInput.addEventListener('change', () => {
+            uploadButton.disabled = fileInput.files.length === 0;
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const objectUrl = URL.createObjectURL(file);
+                audioElement.src = objectUrl; // Set the audio source
+                audioPlayer.style.display = 'block'; // Show the audio player
+            }
+        });
+
+        // Function to poll the backend for captions and summary
+        const pollForCaptionsAndSummary = async (fileName, maxRetries = 60, interval = 10000) => {
+            let retries = 0;
+            processingMessage.style.display = 'block'; // Show the processing message
+            processingMessage.textContent = 'Processing, please wait...'; // Initial message
+
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(`/get-captions-and-summary?file_name=${encodeURIComponent(fileName)}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Captions
+                        captionOutput.innerHTML = ''; // Clear previous captions
+                        const chunks = data.captions.split('Chunk'); // Split by "Chunk"
+                        chunks.forEach((chunk, index) => {
+                            if (chunk.trim()) {
+                                const paragraph = document.createElement('p');
+                                paragraph.classList.add('caption-chunk');
+                                paragraph.textContent = `Chunk ${index}: ${chunk.trim()}`;
+                                captionOutput.appendChild(paragraph);
+                            }
+                        });
+
+                        // Summary
+                        summaryOutput.textContent = data.summary; // Display the summary
+
+                        // Show the output box and hide the processing message
+                        outputBox.style.display = 'block';
+                        processingMessage.style.display = 'none';
+                        return; // Exit the polling loop
+                    }
+                } catch (error) {
+                    console.error(`Attempt ${retries + 1}: Data not available yet.`);
+                }
+
+                processingMessage.textContent = `Processing, please wait... (${retries + 1}/${maxRetries} attempts)`;
+                await new Promise(resolve => setTimeout(resolve, interval));
+                retries++;
+            }
+
+            processingMessage.style.display = 'none'; // Hide the processing message
+            alert('Captions and summary are not available yet. Please try again later.');
+        };
+
+        // Handle file upload and start polling
+        uploadButton.addEventListener('click', async () => {
+            if (fileInput.files.length === 0) {
+                alert('Please upload an MP3 file first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
+                const uploadData = await uploadResponse.json();
+
+                if (!uploadResponse.ok) {
+                    throw new Error(uploadData.error || 'Failed to upload file.');
+                }
+
+                const fileName = uploadData.file_name;  // Get the uploaded file name
+
+                pollForCaptionsAndSummary(fileName);
+
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
