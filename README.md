@@ -1,7 +1,7 @@
 
 
 # AI-Driven Music Caption Generation Using Large Language Models
-<img width="842" alt="Screenshot 2024-12-13 at 9 37 09 PM" src="https://github.com/user-attachments/assets/81c2710e-cd67-4527-a094-92b9a689fe5a" />
+<img width="835" height="629" alt="Screenshot 2025-08-27 at 11 17 55 AM" src="https://github.com/user-attachments/assets/b40328f3-58da-49b4-bfc6-f3e31a9755a5" />
 
 
 ## Introduction
@@ -14,7 +14,8 @@ Inspired by SeungHeon Doh's research, the project integrates AWS cloud services,
 ## Architecture
 The system integrates several AWS services and machine learning frameworks to achieve automation and scalability:
 
-![image](https://github.com/user-attachments/assets/6b5b1252-67e9-4dad-bed0-db320c1a3840)
+<img width="683" height="441" alt="Screenshot 2025-08-27 at 11 18 54 AM" src="https://github.com/user-attachments/assets/07fcc2a3-f5c4-4e88-9231-1166d6b120e9" />
+
 
 ### Components:
 1. **Web Application**:
